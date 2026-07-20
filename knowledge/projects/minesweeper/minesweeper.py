@@ -1,12 +1,10 @@
 import itertools
 import random
 
-
 class Minesweeper():
     """
     Minesweeper game representation
     """
-
     def __init__(self, height=8, width=8, mines=8):
 
         # Set initial width, height, and number of mines
@@ -83,7 +81,6 @@ class Minesweeper():
         """
         return self.mines_found == self.mines
 
-
 class Sentence():
     """
     Logical statement about a Minesweeper game
@@ -109,8 +106,6 @@ class Sentence():
             return self.cells
         
         return set()
-
-        
 
     def known_safes(self):
         """
@@ -138,8 +133,6 @@ class Sentence():
         """
         if cell in self.cells:
             self.cells.discard(cell)
-
-
 
 class MinesweeperAI():
     """
@@ -196,6 +189,7 @@ class MinesweeperAI():
             5) add any new sentences to the AI's knowledge base
                if they can be inferred from existing knowledge
         """
+        
         self.moves_made.add(cell)
         self.mark_safe(cell)
         neighbors = set()
@@ -217,19 +211,73 @@ class MinesweeperAI():
                     continue
                      
                 neighbors.add((i,j))
-            AuxSentence = Sentence(neighbors, count)
-            self.knowledge.append(AuxSentence)
+        AuxSentence = Sentence(neighbors, count)
+        self.knowledge.append(AuxSentence)
+
+        for sentence in self.knowledge:
+            resp = sentence.known_mines()
+            for s in resp.copy():
+                self.mark_mine(s)  
+            resp = sentence.known_safes()
+            for s in resp.copy():
+                self.mark_safe(s)
+        
+        changed = True
+        while changed:
+            self.newSentence = []
+            for sentenceA in self.knowledge:
+                for sentenceB in self.knowledge:
+                    
+                    if sentenceA is sentenceB:
+                        continue
+
+                    if sentenceA.cells.issubset(sentenceB.cells) and sentenceB.cells.issubset(sentenceA.cells):
+                        continue
+
+                    if not(sentenceA.cells.issubset(sentenceB.cells)) and not (sentenceB.cells.issubset(sentenceA.cells)):
+                        continue
+
+                    if sentenceB.cells.issubset(sentenceA.cells):
+                        auxCells = sentenceA.cells - sentenceB.cells
+                        auxCount = sentenceA.count - sentenceB.count
+
+                        AuxSentence = Sentence(auxCells, auxCount)
+                        if not AuxSentence.cells:
+                            continue
+                        elif AuxSentence.count < 0 or len(AuxSentence.cells) < AuxSentence.count:
+                            continue
+                        else:
+                            self.newSentence.append(AuxSentence)
+
+                    elif sentenceA.cells.issubset(sentenceB.cells):
+                        auxCells = sentenceB.cells - sentenceA.cells
+                        auxCount = sentenceB.count - sentenceA.count
+                        
+                        AuxSentence = Sentence(auxCells, auxCount)
+                        if not AuxSentence.cells:
+                            continue
+                        elif AuxSentence.count < 0 or len(AuxSentence.cells) < AuxSentence.count:
+                            continue
+                        else:
+                            self.newSentence.append(AuxSentence)
+            nova = []
+            for sentence in self.newSentence:
+                if sentence not in self.knowledge:
+                    nova.append(sentence) 
+
+            self.knowledge.extend(nova)
 
             for sentence in self.knowledge:
                 resp = sentence.known_mines()
-                for s in resp:
-                    self.mark_mine(s)
+                for s in resp.copy():
+                    self.mark_mine(s)  
                 resp = sentence.known_safes()
-                for s in resp:
+                for s in resp.copy():
                     self.mark_safe(s)
-                
             
-
+            if nova == []:
+                changed = False
+    
     def make_safe_move(self):
         """
         Returns a safe cell to choose on the Minesweeper board.
@@ -239,7 +287,11 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
-        raise NotImplementedError
+        for cell in self.safes:
+            if cell not in self.moves_made:
+                return cell
+
+        return None
 
     def make_random_move(self):
         """
@@ -248,4 +300,17 @@ class MinesweeperAI():
             1) have not already been chosen, and
             2) are not known to be mines
         """
-        raise NotImplementedError
+        
+        allCells = set()
+        for i in range(self.height):
+            for j in range(self.width):
+                allCells.add((i,j))
+        candidatos = set()
+        for cell in allCells:
+            if cell not in self.moves_made and cell not in self.mines:
+                candidatos.add(cell)
+        
+        if candidatos:
+            return random.choice(list(candidatos))
+        
+        return None
