@@ -105,10 +105,10 @@ def sample_pagerank(corpus, damping_factor, n):
         p_dist = transition_model(corpus, resultado, damping_factor)
         probabilidades = []
 
-        for i in p_dist:
+        for i in opcoes_sites:
             probabilidades.append(p_dist[i])
 
-        resultado = random.choices(opcoes_sites, weights=probabilidades, k=1)[0]
+        resultado = random.choices(opcoes_sites, weights=probabilidades)[0]
         resultados_das_amostras.append(resultado)
         
     for i in opcoes_sites:
