@@ -11,7 +11,10 @@ def main():
     if len(sys.argv) != 2:
         sys.exit("Usage: python pagerank.py corpus")
     corpus = crawl(sys.argv[1])
+    a = transition_model(corpus, "1.html", DAMPING)
+    print(a)
     ranks = sample_pagerank(corpus, DAMPING, SAMPLES)
+    print(ranks)
     print(f"PageRank Results from Sampling (n = {SAMPLES})")
     for page in sorted(ranks):
         print(f"  {page}: {ranks[page]:.4f}")
@@ -81,8 +84,45 @@ def sample_pagerank(corpus, damping_factor, n):
     Return a dictionary where keys are page names, and values are
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
+    
     """
-    raise NotImplementedError
+    proba = dict()
+    resultados_das_amostras = []
+    opcoes_sites = list(corpus.keys())
+
+    site = random.choice(opcoes_sites)
+    resultados_das_amostras.append(site)
+
+    p_dist = transition_model(corpus, site, damping_factor)
+    probabilidades = []
+
+    for i in opcoes_sites:
+        probabilidades.append(p_dist[i])
+
+    resultado = random.choices(opcoes_sites, weights=probabilidades, k=1)[0]
+    
+    while len(resultados_das_amostras) < n:
+        p_dist = transition_model(corpus, resultado, damping_factor)
+        probabilidades = []
+
+        for i in p_dist:
+            probabilidades.append(p_dist[i])
+
+        resultado = random.choices(opcoes_sites, weights=probabilidades, k=1)[0]
+        resultados_das_amostras.append(resultado)
+        
+    for i in opcoes_sites:
+        proba[i] = 0
+
+    for i in resultados_das_amostras:
+        proba[i] += 1
+
+    proba_temporaria = proba.copy()
+
+    for i in proba_temporaria:
+        proba[i] = proba_temporaria[i]/n
+
+    return proba
 
 
 def iterate_pagerank(corpus, damping_factor):
