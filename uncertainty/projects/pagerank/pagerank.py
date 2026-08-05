@@ -11,10 +11,7 @@ def main():
     if len(sys.argv) != 2:
         sys.exit("Usage: python pagerank.py corpus")
     corpus = crawl(sys.argv[1])
-    a = transition_model(corpus, "1.html", DAMPING)
-    print(a)
     ranks = sample_pagerank(corpus, DAMPING, SAMPLES)
-    print(ranks)
     print(f"PageRank Results from Sampling (n = {SAMPLES})")
     for page in sorted(ranks):
         print(f"  {page}: {ranks[page]:.4f}")
@@ -134,7 +131,47 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    p_dist = dict()
+    links = []
+    p_dist_temp_novo = dict()
+    cont = 0
+
+    for i in corpus:
+        p_dist[i] = 1/len(corpus)
+
+    p_dist_temp_antigo = p_dist.copy()
+
+    converged = False
+    while not converged:
+        p_dist_temp_novo = {}
+        
+        for i in corpus:
+            for j in corpus:
+                if i in corpus[j]:
+                    links.append(j)
+
+            pr_novo = (1 - damping_factor)/len(corpus)
+
+            for link in links:
+                qntd_link = len(corpus[link])
+                if qntd_link == 0:
+                    cont += (p_dist[link]/len(corpus)) * damping_factor
+                else: 
+                    cont += (p_dist[link]/len(corpus[link])) * damping_factor
+            p_dist_temp_novo[i] = pr_novo + cont
+            cont = 0
+            links = []
+
+        converged = True
+        for i in p_dist:
+            if abs(p_dist_temp_antigo[i] - p_dist_temp_novo[i]) >= 0.001: 
+                converged = False
+
+        p_dist_temp_antigo = p_dist_temp_novo.copy()
+        for i in p_dist:
+            p_dist[i] = p_dist_temp_novo[i]
+
+    return p_dist
 
 
 if __name__ == "__main__":
