@@ -149,7 +149,9 @@ def iterate_pagerank(corpus, damping_factor):
             for j in corpus:
                 if i in corpus[j]:
                     links.append(j)
-
+                if corpus[j] == set():
+                    links.append(j)
+                    
             pr_novo = (1 - damping_factor)/len(corpus)
 
             for link in links:
