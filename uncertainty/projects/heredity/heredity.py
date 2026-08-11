@@ -198,9 +198,9 @@ def joint_probability(people, one_gene, two_genes, have_trait):
                 if person in have_trait:
                     gene_probability = (1-p_trasmit_father)*(1-p_trasmit_mother)    
                     trait_probability = PROBS['trait'][0][True]
-                
-                gene_probability = (1-p_trasmit_father)*(1-p_trasmit_mother)   
-                trait_probability = PROBS['trait'][0][False]
+                else: 
+                    gene_probability = (1-p_trasmit_father)*(1-p_trasmit_mother)   
+                    trait_probability = PROBS['trait'][0][False]
             else:
                 if person in have_trait:
                     gene_probability = PROBS['gene'][0]    
@@ -229,16 +229,16 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
 
     for person in probabilities:
         if person in one_gene:
-            probabilities[person]['gene'][1] = p
+            probabilities[person]['gene'][1] = p + probabilities[person]['gene'][1]
         elif person in two_genes:
-            probabilities[person]['gene'][2] = p
+            probabilities[person]['gene'][2] = p + probabilities[person]['gene'][2]
         else:
-            probabilities[person]['gene'][0] = p
+            probabilities[person]['gene'][0] = p + probabilities[person]['gene'][0]
     
         if person in have_trait:
-            probabilities[person]['trait'][True] = p
+            probabilities[person]['trait'][True] = p + probabilities[person]['trait'][True]
         else:
-            probabilities[person]['trait'][False] = p
+            probabilities[person]['trait'][False] = p + probabilities[person]['trait'][False]
 
 
 
